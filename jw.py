@@ -30,9 +30,6 @@ if sys.getdefaultencoding() != default_encoding:
 sys.setdefaultencoding(default_encoding)
 #-------------------------------------------------------------------------------
 
-def toGbk(s):
-    '''Utf-8 to GBK'''
-    return s.decode('utf-8').encode('gbk')
 def uni(s):
     '''Decode words to utf-8'''
     if isinstance(s,unicode):
@@ -56,10 +53,12 @@ class Jwpt():
         data={
             '__VIEWSTATE':viewState.vsLogin,
             'TextBox1':self.user,
-            'TextBox2':self.passwd,
-            'RadioButtonList1':toGbk("学生"),
-            'Button1':toGbk("  登录  ")}
+            'TextBox2':self.passwd,}
+            #'RadioButtonList1':toGbk("学生"),
+            #'Button1':toGbk("  登录  ")}
+            # pys60不支持gbk编码，只好使用硬编码了
         data=urllib.urlencode(data)
+        data+="&RadioButtonList1=%D1%A7%C9%FA&Button1=++%B5%C7%C2%BC++"
         resp=self.opener.open(loginLink,data)
         resp=self.readgzip(resp.read())
         if resp.find("mainmenu")!=-1:
@@ -77,17 +76,18 @@ class Jwpt():
         '''Get  student grade.'''
         self.getXscjcxViewState()
         if btnType=="semester":
-            btnName="学期成绩"
+            btnName="&btn_xq=%D1%A7%C6%DA%B3%C9%BC%A8"
         elif btnType=="year":
-            btnName="学年成绩"
+            btnName="btn_xn=%D1%A7%C4%EA%B3%C9%BC%A8"
         elif btnType=="all":
-            btnName="历年成绩"
+            btnName="btn_zcj=%C0%FA%C4%EA%B3%C9%BC%A8"
         data={
             '__VIEWSTATE':self.vsXscjcx,
             'ddlXN':year,
             'ddlXQ':semester,
-            'btn_xq':toGbk(btnName)}
+            }
         data=urllib.urlencode(data)
+        data+=btnName
         resp=self.opener.open(self.xscjcxLink,data)
         return self.readgzip(resp.read())
     def getXscjcxViewState(self):
@@ -165,7 +165,7 @@ class Jwpt():
         else:
             return html
 if __name__=="__main__":
-    j=Jwpt('StudentSerial','passwd')
+    j=Jwpt('studentSerial','passwd')
     res=j.login()
     resp=j.getLinksFromLoginResp(res)
     r=j.xscjcx('2007-2008','1')
